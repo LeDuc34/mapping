@@ -1,6 +1,8 @@
-// Sélectionner le logo et le canvas
+// Sélectionner le logo, le canvas et les textes
 const logo = document.getElementById('logo');
 const canvas = document.getElementById('audioCanvas');
+const textAbsinthe = document.getElementById('animatedText');
+const textTime = document.getElementById('animatedTextBottom');
 const ctx = canvas.getContext('2d');
 
 // Définir la taille du canvas
@@ -24,35 +26,46 @@ navigator.mediaDevices.getUserMedia({ audio: { deviceId: '7db0f4fbb810dab50c5684
     console.error('Erreur d\'accès au microphone virtuel:', error);
   });
 
-// Fonction pour animer le logo et dessiner les barres de son
+// Fonction pour animer le logo, les textes et dessiner les barres de son
 function updateLogoAndBars() {
-    requestAnimationFrame(updateLogoAndBars);
+  requestAnimationFrame(updateLogoAndBars);
 
-    analyser.getByteFrequencyData(frequencyData);
+  analyser.getByteFrequencyData(frequencyData);
 
-    // Filtrer les basses fréquences (20Hz à 250Hz)
-    const bassFrequencyRange = frequencyData.slice(0, 20);
+  const bassFrequencyRange = frequencyData.slice(0, 20);
+  let bassAmplitude = 0;
+  bassFrequencyRange.forEach(f => bassAmplitude += f);
+  bassAmplitude /= bassFrequencyRange.length;
 
-    let bassAmplitude = 0;
-    bassFrequencyRange.forEach(f => bassAmplitude += f);
-    bassAmplitude /= bassFrequencyRange.length;
+  // Ajuster la taille et la rotation du logo en fonction des basses
+  const scale = 1 + bassAmplitude / 255;
+  const currentScale = parseFloat(logo.style.transform.replace('scale(', '').replace(')', '')) || 1;
+  const newScale = currentScale + (scale - currentScale) * 0.1;
+  logo.style.transform = `scale(${newScale}) rotate(${bassAmplitude * 0.1}deg)`;
 
-    // Ajuster la taille du logo en fonction des basses
-    const scale = 1 + bassAmplitude / 255;
-    const currentScale = parseFloat(logo.style.transform.replace('scale(', '').replace(')', '')) || 1;
-    const newScale = currentScale + (scale - currentScale) * 0.1; // Interpolation fluide
-    logo.style.transform = `scale(${newScale}) rotate(${bassAmplitude * 0.1}deg)`;
+  // Changer la couleur du logo et des textes en fonction des basses
+  const colorValue = Math.floor(bassAmplitude);
+  const newColor = `rgb(${colorValue}, ${255 - colorValue}, ${colorValue / 2})`;
+  logo.style.backgroundColor = newColor;
 
-    // Changer la couleur de fond de manière plus marquée
-    const colorValue = Math.floor(bassAmplitude * 2.5); // Multiplier par 2.5 pour un effet plus marqué
-    logo.style.backgroundColor = `rgb(${Math.min(colorValue, 255)}, ${255 - Math.min(colorValue, 255)}, ${Math.min(colorValue / 2, 255)})`;
+  // Texte ABSINTHE – Ajuster la taille du texte en fonction de l'amplitude des basses
+  const textScaleAbsinthe = 1 + bassAmplitude / 300;
+  textAbsinthe.style.transform = `scale(${textScaleAbsinthe})`;
+  textAbsinthe.style.color = newColor; // Modifier la couleur du texte pour correspondre
 
-    // Appliquer des ombres en fonction de l'intensité des basses
-    const shadowIntensity = bassAmplitude / 255 * 30; // Augmenter l'intensité de l'ombre
-    logo.style.boxShadow = `0 0 ${shadowIntensity}px ${shadowIntensity / 2}px rgba(0, 0, 0, 0.5)`;
+  // Ajouter un effet de lumière avec text-shadow en fonction des basses pour ABSINTHE
+  textAbsinthe.style.textShadow = `0 0 ${bassAmplitude / 10}px rgba(255, 255, 255, 0.8)`;
 
-    // Dessiner les barres de son circulaires
-    drawSoundBars(bassAmplitude);
+  // Texte TIME – Appliquer les mêmes transformations que pour ABSINTHE
+  const textScaleTime = 1 + bassAmplitude / 300;
+  textTime.style.transform = `scale(${textScaleTime})`;
+  textTime.style.color = newColor; // Modifier la couleur du texte pour correspondre
+
+  // Ajouter un effet de lumière avec text-shadow en fonction des basses pour TIME
+  textTime.style.textShadow = `0 0 ${bassAmplitude / 10}px rgba(255, 255, 255, 0.8)`;
+
+  // Dessiner les barres de son
+  drawSoundBars(bassAmplitude);
 }
 
 function drawSoundBars(bassAmplitude) {
@@ -120,7 +133,6 @@ function drawSoundBars(bassAmplitude) {
       ctx.shadowOffsetY = 4;
   }
 }
-
 
 // Attendre que l'utilisateur interagisse avec la page pour commencer le contexte audio
 document.body.addEventListener('click', function () {

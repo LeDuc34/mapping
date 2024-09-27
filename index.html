@@ -31,8 +31,45 @@
             transition: transform 0.1s ease, background-color 0.1s ease, box-shadow 0.1s ease;
             z-index: 2; /* S'assurer que le logo est au-dessus des barres */
             padding: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.2); /* Ajouter une ombre externe et interne */
+
         }
 
+        #textContainer {
+            position: absolute;
+            top: 10px;
+            width: 100%; /* Aligner le texte au centre */
+            display: flex;
+            justify-content: center;
+            z-index: 2; /* Assurez-vous que le texte est au-dessus du canvas */
+}
+
+        #animatedText {
+            font-size: 30px;
+            color: white; /* Couleur initiale du texte */
+            text-transform: uppercase;
+            font-family: 'Arial', sans-serif;
+            letter-spacing: 5px;
+            transition: transform 0.1s ease, color 0.1s ease, text-shadow 0.1s ease;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); /* Effet de lumière */
+}
+        #textContainerBottom{
+            position: absolute;
+            bottom: 10px;
+            width: 100%; /* Aligner le texte au centre */
+            display: flex;
+            justify-content: center;
+            z-index: 2; /* Assurez-vous que le texte est au-dessus du canvas */
+        }
+        #animatedTextBottom {
+            font-size: 30px;
+            color: white; /* Couleur initiale du texte */
+            text-transform: uppercase;
+            font-family: 'Arial', sans-serif;
+            letter-spacing: 5px;
+            transition: transform 0.1s ease, color 0.1s ease, text-shadow 0.1s ease;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); /* Effet de lumière */
+}
         canvas {
             position: absolute; /* Positionner le canvas sous le logo */
             top: 0; /* Alignement en haut */
@@ -46,7 +83,14 @@
 <body>
     <div id="container">
         <canvas id="audioCanvas"></canvas>
+        <div id="textContainer">
+            <h1 id="animatedText">ABSINTHE</h1>
+        </div>
+        <canvas id="audioCanvas"></canvas>
         <img id="logo" src="logo.png" alt="Logo"> <!-- Assurez-vous que le chemin du logo est correct -->
+        <div id="textContainerBottom">
+            <h1 id="animatedTextBottom">22H-1H</h1>
+        </div>
     </div>
     <script src="app.js"></script>
 </body>
