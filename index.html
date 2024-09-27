@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Son et Logo</title>
+    <style>
+        html, body {
+            height: 100%; /* Assurez-vous que le body et le html prennent toute la hauteur */
+            margin: 0; /* Supprimez les marges par défaut */
+        }
+
+        #container {
+            position: absolute; /* Utilisez position absolute pour remplir tout l'espace */
+            top: 0; /* Alignez le conteneur en haut */
+            left: 0; /* Alignez le conteneur à gauche */
+            width: 100%; /* Prenez toute la largeur */
+            height: 100%; /* Prenez toute la hauteur */
+            display: flex; /* Utilisez Flexbox pour centrer le contenu */
+            justify-content: center; /* Centre horizontalement */
+            align-items: center; /* Centre verticalement */
+            background-color: black; /* Optionnel : Couleur de fond pour le conteneur */
+        }
+
+        #logo {
+            position: relative; /* Assurez-vous que le logo est au-dessus des barres */
+            width: 240px; /* Ajustez la taille de votre logo */
+            height: 200px; /* Ajustez la taille de votre logo */
+            background-color: blue; /* Couleur initiale du logo */
+            border-radius: 50%;
+            transition: transform 0.1s ease, background-color 0.1s ease, box-shadow 0.1s ease;
+            z-index: 2; /* S'assurer que le logo est au-dessus des barres */
+            padding: 10px;
+        }
+
+        canvas {
+            position: absolute; /* Positionner le canvas sous le logo */
+            top: 0; /* Alignement en haut */
+            left: 0; /* Alignement à gauche */
+            width: 100%; /* Prendre toute la largeur */
+            height: 100%; /* Prendre toute la hauteur */
+            z-index: 1; /* Mettre le canvas derrière le logo */
+        }
+    </style> 
+</head>
+<body>
+    <div id="container">
+        <canvas id="audioCanvas"></canvas>
+        <img id="logo" src="logo.png" alt="Logo"> <!-- Assurez-vous que le chemin du logo est correct -->
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
