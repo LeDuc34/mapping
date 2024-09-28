@@ -34,6 +34,12 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.2); /* Ajouter une ombre externe et interne */
 
         }
+        #fluidCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1; /* Mettre le canvas du fluide sous le logo */
+        }
 
         #textContainer {
             position: absolute;
@@ -87,6 +93,7 @@
             <h1 id="animatedText">ABSINTHE</h1>
         </div>
         <canvas id="audioCanvas"></canvas>
+        <canvas id="fluidCanvas"></canvas>
         <img id="logo" src="logo.png" alt="Logo"> <!-- Assurez-vous que le chemin du logo est correct -->
         <div id="textContainerBottom">
             <h1 id="animatedTextBottom">22H-1H</h1>

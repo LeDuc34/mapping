@@ -12,6 +12,7 @@ canvas.height = 300;
 // Créer un contexte audio
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 const analyser = audioContext.createAnalyser();
+analyser.fftSize = 2048; // Taille de la fenêtre FFT
 const frequencyData = new Uint8Array(analyser.frequencyBinCount);
 
 // Accéder au microphone virtuel (VB-Audio Virtual Cable)
@@ -19,7 +20,6 @@ navigator.mediaDevices.getUserMedia({ audio: { deviceId: '7db0f4fbb810dab50c5684
   .then(stream => {
     const source = audioContext.createMediaStreamSource(stream);
     source.connect(analyser);
-    analyser.fftSize = 2048; // Taille de la fenêtre FFT
     updateLogoAndBars(); // Démarrer l'animation
   })
   .catch(error => {
@@ -64,16 +64,15 @@ function updateLogoAndBars() {
   // Ajouter un effet de lumière avec text-shadow en fonction des basses pour TIME
   textTime.style.textShadow = `0 0 ${bassAmplitude / 10}px rgba(255, 255, 255, 0.8)`;
 
-  // Dessiner les barres de son
-  drawSoundBars(bassAmplitude);
+  // Dessiner les barres de son avec différentes fréquences pour chaque partie du cercle
+  drawSoundBars(frequencyData);
 }
 
-function drawSoundBars(bassAmplitude) {
+function drawSoundBars(frequencyData) {
   ctx.clearRect(0, 0, canvas.width, canvas.height); // Effacer le canvas
 
-  const numberOfBars = 12; // Nombre de barres
-  const radius = 20; // Rayon de la base des barres
-  const maxAmplitude = 250; // Amplitude maximale pour la normalisation
+  const numberOfBars = 96; // Nombre de barres
+  const radius = 15; // Rayon de la base des barres
   const outerRadius = radius + 60; // Ajuster pour que les barres soient visibles
 
   // Utiliser la couleur de fond du logo pour les barres
@@ -85,58 +84,66 @@ function drawSoundBars(bassAmplitude) {
   const g = rgbValues[1];
   const b = rgbValues[2];
 
+  // Déterminer combien de fréquences assigner à chaque barre
+  const frequenciesPerBar = Math.floor(frequencyData.length / numberOfBars);
+
   for (let i = 0; i < numberOfBars; i++) {
-      const angle = (i / numberOfBars) * Math.PI * 2; // Calculer l'angle
+    const angle = (i / numberOfBars) * Math.PI * 2; // Calculer l'angle
 
-      // Créer un décalage basé sur l'index de la barre
-      const timeOffset = (i * 0.2); // Délai en secondes pour chaque barre
-      const dynamicBassAmplitude = bassAmplitude * (Math.sin(Date.now() * 0.002 + timeOffset) * 0.5 + 0.5); // Appliquer une fonction sinusoïdale pour la désynchronisation
+    // Calculer la moyenne des fréquences assignées à cette barre
+    const startFreqIndex = i * frequenciesPerBar;
+    const endFreqIndex = startFreqIndex + frequenciesPerBar;
+    const barFrequencies = frequencyData.slice(startFreqIndex, endFreqIndex);
 
-      const height = (dynamicBassAmplitude / maxAmplitude) * 80; // Hauteur de la barre (ajustée)
+    let amplitude = 0;
+    barFrequencies.forEach(f => amplitude += f);
+    amplitude /= barFrequencies.length; // Amplitude moyenne pour cette barre
 
-      // Déterminer les coordonnées de la base de la barre (sur le cercle)
-      const x = 150 + Math.cos(angle) * radius; // Coordonnée x de la base
-      const y = 150 + Math.sin(angle) * radius; // Coordonnée y de la base
+    const height = (amplitude / 255) * 80; // Hauteur de la barre (ajustée)
 
-      // Déterminer les coordonnées de l'extrémité de la barre
-      const endX = 150 + Math.cos(angle) * (outerRadius + height); // Coordonnée x de l'extrémité
-      const endY = 150 + Math.sin(angle) * (outerRadius + height); // Coordonnée y de l'extrémité
+    // Déterminer les coordonnées de la base de la barre (sur le cercle)
+    const x = 150 + Math.cos(angle) * radius; // Coordonnée x de la base
+    const y = 150 + Math.sin(angle) * radius; // Coordonnée y de la base
 
-      // Dessiner la barre avec un dégradé basé sur la couleur du logo
-      const gradient = ctx.createLinearGradient(x, y, endX, endY);
-      const alphaValue = dynamicBassAmplitude / maxAmplitude; // Intensité alpha pour le dégradé
-      gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${alphaValue})`); // Couleur avec opacité
-      gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, ${alphaValue * 0.5})`); // Dégradé vers une teinte plus transparente
+    // Déterminer les coordonnées de l'extrémité de la barre
+    const endX = 150 + Math.cos(angle) * (outerRadius + height); // Coordonnée x de l'extrémité
+    const endY = 150 + Math.sin(angle) * (outerRadius + height); // Coordonnée y de l'extrémité
 
-      ctx.strokeStyle = gradient; // Utiliser le dégradé
-      ctx.lineWidth = 5 + Math.sin(i + Date.now() * 0.002) * 2; // Variation de la largeur de la barre
-      ctx.beginPath(); // Commencer un nouveau chemin
-      ctx.moveTo(x, y); // Définir le point de départ
-      ctx.lineTo(endX, endY); // Tracer la ligne vers l'extérieur
-      ctx.stroke(); // Dessiner la barre
+    // Dessiner la barre avec un dégradé basé sur la couleur du logo
+    const gradient = ctx.createLinearGradient(x, y, endX, endY);
+    const alphaValue = amplitude / 255; // Intensité alpha pour le dégradé
+    gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${alphaValue})`); // Couleur avec opacité
+    gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, ${alphaValue * 0.5})`); // Dégradé vers une teinte plus transparente
 
-      // Dessiner le cercle au sommet de la barre
-      const circleRadius = 1 + (dynamicBassAmplitude / maxAmplitude) * 10; // Taille du cercle en fonction de l'amplitude
-      const circleGradient = ctx.createRadialGradient(endX, endY, circleRadius / 2, endX, endY, circleRadius);
-      circleGradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 1)`); // Couleur du centre
-      circleGradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0.5)`); // Couleur à l'extérieur
+    ctx.strokeStyle = gradient; // Utiliser le dégradé
+    ctx.lineWidth = 5 + Math.sin(i + Date.now() * 0.002) * 2; // Variation de la largeur de la barre
+    ctx.beginPath(); // Commencer un nouveau chemin
+    ctx.moveTo(x, y); // Définir le point de départ
+    ctx.lineTo(endX, endY); // Tracer la ligne vers l'extérieur
+    ctx.stroke(); // Dessiner la barre
 
-      ctx.fillStyle = circleGradient; // Utiliser le dégradé pour le cercle
-      ctx.beginPath(); // Commencer un nouveau chemin
-      ctx.arc(endX, endY, circleRadius, 0, Math.PI * 2); // Créer le cercle
-      ctx.fill(); // Remplir le cercle
+    // Dessiner le cercle au sommet de la barre
+    const circleRadius = 1 + (amplitude / 255) * 10; // Taille du cercle en fonction de l'amplitude
+    const circleGradient = ctx.createRadialGradient(endX, endY, circleRadius / 2, endX, endY, circleRadius);
+    circleGradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 1)`); // Couleur du centre
+    circleGradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0.5)`); // Couleur à l'extérieur
 
-      // Ombre portée pour le cercle
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-      ctx.shadowBlur = 8;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 4;
+    ctx.fillStyle = circleGradient; // Utiliser le dégradé pour le cercle
+    ctx.beginPath(); // Commencer un nouveau chemin
+    ctx.arc(endX, endY, circleRadius, 0, Math.PI * 2); // Créer le cercle
+    ctx.fill(); // Remplir le cercle
+
+    // Ombre portée pour le cercle
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 4;
   }
 }
 
 // Attendre que l'utilisateur interagisse avec la page pour commencer le contexte audio
 document.body.addEventListener('click', function () {
-    audioContext.resume().then(() => {
-        console.log('Le contexte audio a été redémarré');
-    });
+  audioContext.resume().then(() => {
+    console.log('Le contexte audio a été redémarré');
+  });
 });
