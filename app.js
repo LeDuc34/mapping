@@ -16,7 +16,7 @@ analyser.fftSize = 2048; // Taille de la fenêtre FFT
 const frequencyData = new Uint8Array(analyser.frequencyBinCount);
 
 // Accéder au microphone virtuel (VB-Audio Virtual Cable)
-navigator.mediaDevices.getUserMedia({ audio: { deviceId: '7db0f4fbb810dab50c56844353cf12b2e7548b7c7bc2a121d9f8d398826face5' } })
+navigator.mediaDevices.getUserMedia({ audio: true })
   .then(stream => {
     const source = audioContext.createMediaStreamSource(stream);
     source.connect(analyser);
@@ -143,6 +143,16 @@ function drawSoundBars(frequencyData) {
 
 // Attendre que l'utilisateur interagisse avec la page pour commencer le contexte audio
 document.body.addEventListener('click', function () {
+  navigator.mediaDevices.enumerateDevices()
+  .then(devices => {
+    devices.forEach(device => {
+      console.log(`Label: ${device.label}, Device ID: ${device.deviceId}, Kind: ${device.kind}`);
+    });
+  })
+  .catch(err => {
+    console.error('Erreur en accédant aux périphériques :', err);
+  });
+
   audioContext.resume().then(() => {
     console.log('Le contexte audio a été redémarré');
   });
